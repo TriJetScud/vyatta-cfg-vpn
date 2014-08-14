@@ -1291,6 +1291,14 @@ if ( $vcVPN->exists('ipsec') ) {
           $genout .= "\tauto=start\n";
         }
       }
+      #
+      # Set S2S VPN Inactivity Timeout
+      #
+      my $inactivity = $vcVPN->returnValue("ipsec site-to-site peer $peer inactivity");
+      if (defined($inactivity)) {
+          $genout .= "\tinactivity=$inactivity" . "s\n";
+      }
+       
       $conn_head =~ s/\n//;
       $genout .= "#$conn_head";    # to identify end of connection definition
                                    # used by clear vpn op-mode command
