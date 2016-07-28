@@ -739,6 +739,16 @@ if ($vcVPN->exists('ipsec')) {
                 }else {
                     $genout .= "\tkeyexchange=ikev1\n";
                 }
+                
+                #
+                # Block ECDSA private keys for IKEv1 configurations
+                #
+                my $ecdsa_ikev1 = $vcVPN->returnValue("ipsec site-to-site peer $peer authentication x509 key type");
+                if (defined($ecdsa_ikev1)) {
+                    if ($ecdsa_ikev1 eq 'ecdsa' && ($key_exchange eq 'ikev1' || !defined($key_exchange))) {
+                        vpn_die(["vpn","ipsec","site-to-site","peer",$peer,"authentication","x509","key","type"],"$vpn_cfg_err ECDSA keys are only valid for IKEv2 configurations.\n");
+                    }
+                }
 
                 #
                 # Get ikev2-reauth configuration
@@ -1466,9 +1476,9 @@ sub get_x509 {
             if ($? >> 8);
     }
     $crt =~ s/^.*(\/[^\/]+)$/${SERVER_CERT_PATH}$1/;
-    my $auth_str = "\tauthby=rsasig\n";
-    $auth_str .= "\tleftrsasigkey=%cert\n";
-    $auth_str .= "\trightrsasigkey=%cert\n";
+    my $auth_str = "\tauthby=pubkey\n";
+    $auth_str .= "\tleftsigkey=%cert\n";
+    $auth_str .= "\trightsigkey=%cert\n";
     $auth_str .= "\trightca=%same\n";
     $auth_str .= "\tleftcert=$crt\n";
     return $auth_str;
