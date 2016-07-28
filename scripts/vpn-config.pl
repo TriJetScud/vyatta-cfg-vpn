@@ -1478,9 +1478,14 @@ sub get_x509_secret {
     my $peer = pop(@_);
     my $key_file = $vcVPN->returnValue("ipsec site-to-site peer $peer authentication x509 key file");
     my $key_pass = $vcVPN->returnValue("ipsec site-to-site peer $peer authentication x509 key password");
+    my $key_type = $vcVPN->returnValue("ipsec site-to-site peer $peer authentication x509 key type");
+    my $key_str = "RSA";
+    if (defined($key_type) && $key_type eq "ecdsa") {
+       $key_str = "ECDSA";
+    }
     my $pstr = (defined($key_pass) ? " \"$key_pass\"" : '');
     $key_file =~ s/^.*(\/[^\/]+)$/${SERVER_KEY_PATH}$1/;
-    my $str = ": RSA ${key_file}$pstr \n";
+    my $str = ": ${key_str} ${key_file}$pstr \n";
     return $str;
 }
 
